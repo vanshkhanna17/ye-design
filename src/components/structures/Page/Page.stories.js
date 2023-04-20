@@ -1,4 +1,4 @@
-import { Basic as HeroBasic } from "../../atoms/sections/Hero/Hero.stories.js";
+import { Basic as HeroBasic } from "../../atoms/Hero/Hero.stories.js";
 import {
   Basic as CollectionBasic,
   FixedColumns as CollectionFixedColumns,
@@ -67,19 +67,23 @@ const Template = ({ topNav, sideNav, hero, template, ...args }) => {
   );
 };
 
-export const Basic = Template.bind({});
-Basic.args = {
-  sideNav: "SideNavBasic",
-  sideNavIsSticky: true,
-  template: "CollectionBasic",
-  topNav: "TopNavHangingLogo",
-  topNavIsFixed: true,
+export const Basic = {
+  args: {
+    sideNav: "SideNavBasic",
+    sideNavIsSticky: true,
+    template: "CollectionBasic",
+    topNav: "TopNavHangingLogo",
+    topNavIsFixed: true,
+  },
+  render: (args) => <Template {...args} />,
 };
 
-export const WithHero = Template.bind({});
-WithHero.args = {
-  ...Basic.args,
-  hero: "HeroBasic",
-  sideNav: "SideNavBasic",
-  topNav: "TopNavHangingLogo",
+export const WithHero = {
+  args: {
+    ...Basic.args,
+    hero: "HeroBasic",
+    sideNav: "SideNavBasic",
+    topNav: "TopNavHangingLogo",
+  },
+  render: (args) => <Template {...args} />,
 };

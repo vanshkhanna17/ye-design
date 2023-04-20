@@ -2,9 +2,9 @@
 import { clsx } from "clsx";
 import { uniqueId } from "lodash-es";
 import { forwardRef, useMemo, useState } from "react";
-import ContentLoader from "react-content-loader";
 import { useMeasureInput } from "../../../hooks/index.js";
 import { isEmpty } from "../../../tools/utils.js";
+import ContentLoader from "../../../vendors/ContentLoader.js";
 import Spinner from "../Spinner/Spinner.js";
 // eslint-disable-next-line css-modules/no-unused-class
 import formStyles from "../form.module.css";
@@ -26,7 +26,7 @@ const TextInput = forwardRef(
       iconBefore,
       iconAfter,
       id,
-      inputClassName,
+      innerClassNames = {},
       isBusy,
       isLoading,
       label,
@@ -106,7 +106,7 @@ const TextInput = forwardRef(
                 [styles[`space-${spacing}`]]: spacing,
               },
               styles.textInput,
-              inputClassName
+              innerClassNames.input
             )}
             placeholder={
               variant === "material"
@@ -132,7 +132,9 @@ const TextInput = forwardRef(
           />
           {iconAfter ? (
             <span className={clsx(styles.iconWrapper, styles.iconRight)}>
-              <span className={clsx(formStyles.icon)}>{iconAfter}</span>
+              <span className={clsx(formStyles.icon, innerClassNames.input)}>
+                {iconAfter}
+              </span>
             </span>
           ) : null}
           {isLoading ? (

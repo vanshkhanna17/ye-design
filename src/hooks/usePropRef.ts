@@ -1,10 +1,10 @@
 import { isFunction, isObject } from "lodash-es";
 import { useCallback, useRef } from "react";
 
-const usePropRef = (propRef) => {
+const usePropRef = <T = Node>(propRef: React.ForwardedRef<T>) => {
   const innerRef = useRef(null);
   const setInnerRef = useCallback(
-    (node) => {
+    (node: T) => {
       if (propRef) {
         if (isFunction(propRef)) {
           propRef(node);

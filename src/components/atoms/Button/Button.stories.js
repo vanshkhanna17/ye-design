@@ -1,13 +1,14 @@
-import { AiFillLeftCircle, AiFillRightCircle } from "react-icons/ai";
-import { GiBowman, GiCaveman } from "react-icons/gi";
+import { storyIconMap } from "../../../tools/storybook.js";
 import Button from "./Button.js";
-
-const iconMap = { AiFillLeftCircle, AiFillRightCircle, GiBowman, GiCaveman };
 
 const metadata = {
   argTypes: {
-    iconAfter: { control: { options: Object.keys(iconMap), type: "select" } },
-    iconBefore: { control: { options: Object.keys(iconMap), type: "select" } },
+    iconAfter: {
+      control: { options: Object.keys(storyIconMap), type: "select" },
+    },
+    iconBefore: {
+      control: { options: Object.keys(storyIconMap), type: "select" },
+    },
   },
   component: Button,
 };
@@ -15,8 +16,8 @@ const metadata = {
 export default metadata;
 
 const Template = ({ iconAfter, iconBefore, ...args }) => {
-  const IconAfter = iconMap[iconAfter];
-  const IconBefore = iconMap[iconBefore];
+  const IconAfter = storyIconMap[iconAfter];
+  const IconBefore = storyIconMap[iconBefore];
   return (
     <Button
       iconAfter={IconAfter ? <IconAfter /> : null}
@@ -26,30 +27,38 @@ const Template = ({ iconAfter, iconBefore, ...args }) => {
   );
 };
 
-export const Basic = Template.bind({});
-Basic.args = {
-  effects: ["cursor-tracking", "ripple"],
-  label: "Button",
-};
-Basic.parameters = {
-  jest: ["Button.test.js"],
-};
-
-export const Outlined = Template.bind({});
-Outlined.args = {
-  ...Basic.args,
-  variant: "outlined",
+export const Basic = {
+  args: {
+    effects: ["cursor-tracking", "ripple"],
+    label: "Button",
+  },
+  parameters: {
+    jest: ["Button.test.js"],
+  },
+  render: (args) => <Template {...args} />,
 };
 
-export const Dashed = Template.bind({});
-Dashed.args = {
-  ...Basic.args,
-  variant: "dashed",
+export const Outlined = {
+  args: {
+    ...Basic.args,
+    variant: "outlined",
+  },
+  render: (args) => <Template {...args} />,
 };
 
-export const withIcon = Template.bind({});
-withIcon.args = {
-  ...Basic.args,
-  iconAfter: "AiFillRightCircle",
-  iconBefore: "AiFillLeftCircle",
+export const Dashed = {
+  args: {
+    ...Basic.args,
+    variant: "dashed",
+  },
+  render: (args) => <Template {...args} />,
+};
+
+export const withIcon = {
+  args: {
+    ...Basic.args,
+    iconAfter: "IconSquareRoundedChevronLeftFilled",
+    iconBefore: "IconSquareRoundedChevronRightFilled",
+  },
+  render: (args) => <Template {...args} />,
 };

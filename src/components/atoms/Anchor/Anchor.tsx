@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { forwardRef, ReactNode } from "react";
+import { AnchorHTMLAttributes, forwardRef, ReactNode } from "react";
 import styles from "./anchor.module.css";
 
 const sizes = ["small", "medium", "large"] as const;
@@ -12,20 +12,19 @@ const variants = [
   "color",
 ] as const;
 
-type AnchorProps = {
-  as: any;
-  size: typeof sizes[number];
-  iconAfter: ReactNode;
-  iconBefore: ReactNode;
-  label: string;
-  variant: typeof variants[number];
-  effects: any;
-
+interface AnchorProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  as?: any;
+  size?: (typeof sizes)[number];
+  iconAfter?: ReactNode;
+  iconBefore?: ReactNode;
+  label?: string;
+  variant?: (typeof variants)[number];
+  effects?: any;
   children: any;
-  className: any;
-  spacing: any;
-  noVisited: any;
-};
+  className?: any;
+  spacing?: any;
+  noVisited?: any;
+}
 
 /**
  * Primary UI component for user interaction

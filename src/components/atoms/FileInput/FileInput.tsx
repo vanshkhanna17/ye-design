@@ -1,9 +1,9 @@
 /* eslint css-modules/no-unused-class: [2, {camelCase: true, markAsUsed: ['is-outlined'] }] */
 
+import { IconReload, IconTrashXFilled } from "@tabler/icons-react";
 import { clsx } from "clsx";
 import { debounce, uniqueId } from "lodash-es";
 import { useMemo, useState } from "react";
-import { AiFillDelete, AiOutlineReload } from "react-icons/ai/index.js";
 import { UPLOAD_FILE_STATUS } from "../../../tools/uploadFile.js";
 import { Button } from "../Button/index.js";
 import CircleProgress from "../CircleProgress/CircleProgress.js";
@@ -27,7 +27,7 @@ export default function FileInput({
   isBusy,
   spacing,
   className,
-  inputClassName,
+  innerClassNames = {},
   files,
   updateFiles,
   uploadFiles,
@@ -94,7 +94,7 @@ export default function FileInput({
           onChange={handleChange}
           {...props}
         />
-        <span className={clsx(styles.placeholder, inputClassName)}>
+        <span className={clsx(styles.placeholder, innerClassNames.input)}>
           {placeholder}
         </span>
         {iconAfter ? (
@@ -144,7 +144,7 @@ export default function FileInput({
                         variant="trans"
                         spacing="equal"
                       >
-                        <AiFillDelete />
+                        <IconTrashXFilled />
                       </Button>
                     </div>
                   </>
@@ -161,7 +161,7 @@ export default function FileInput({
                         variant="trans"
                         spacing="equal"
                       >
-                        <AiOutlineReload />
+                        <IconReload />
                       </Button>
                     </div>
                     <div>
@@ -170,7 +170,7 @@ export default function FileInput({
                         variant="trans"
                         spacing="equal"
                       >
-                        <AiFillDelete />
+                        <IconTrashXFilled />
                       </Button>
                     </div>
                   </>
@@ -180,7 +180,7 @@ export default function FileInput({
                 ? item.data.map((dataItem, dataIndex) =>
                     dataItem.type === "password" ? (
                       <TextInput
-                        inputClassName={styles.listItemDataInput}
+                        innerClassNames={{ input: styles.listItemDataInput }}
                         key={index}
                         size="small"
                         onChange={(event) =>

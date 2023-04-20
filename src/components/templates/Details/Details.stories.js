@@ -1,4 +1,4 @@
-import { Horizontal as CardHorizontal } from "../../atoms/sections/Card/Card.stories.js";
+import { Horizontal as CardHorizontal } from "../../atoms/Card/Card.stories.js";
 import DetailsTemplate from "./index.js";
 
 const metadata = {
@@ -19,10 +19,12 @@ const Template = ({ content, ...args }) => (
   </DetailsTemplate>
 );
 
-export const Details = Template.bind({});
-Details.args = {
-  contentSide: "Some Extra Content",
-  hasSeparator: true,
-  headerMain: "Title",
-  headerSide: "Some Extra Header",
+export const Details = {
+  args: {
+    contentSide: "Some Extra Content",
+    hasSeparator: true,
+    headerMain: "Title",
+    headerSide: "Some Extra Header",
+  },
+  render: (args) => <Template {...args} />,
 };

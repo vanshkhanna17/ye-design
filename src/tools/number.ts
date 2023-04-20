@@ -1,54 +1,36 @@
-interface FormatNumberProps {
-  decimals?: number;
+import { isFinite, isNumber, isString } from "lodash-es";
+
+interface FormatNumberProps extends Intl.NumberFormatOptions {
+  fractionDigits?: number;
   nullValue?: string;
-  decimalPadding?: boolean;
 }
 
 export function formatNumber(
   value,
   {
-    decimals = 2,
-    nullValue = "--",
-    decimalPadding = true,
+    nullValue,
+    fractionDigits = 2,
+    maximumFractionDigits,
+    minimumFractionDigits,
+    ...options
   }: FormatNumberProps = {}
 ) {
-  let parsedNumber = Number.parseFloat(value);
-  if (Number.isNaN(parsedNumber)) {
+  const number = stringToNumber(value, nullValue);
+  if (!isFinite(number)) {
     return nullValue;
   }
-
-  let prefix = "";
-  if (parsedNumber < (decimals ? Number(`-0.${"0".repeat(decimals)}5`) : 0)) {
-    prefix = "-";
-    parsedNumber = Math.abs(parsedNumber);
-  }
-
-  const decimalMultiplier = Math.pow(10, decimals);
-  let decimalNumber = (
-    Math.round((parsedNumber + Number.EPSILON) * decimalMultiplier) /
-    decimalMultiplier
-  ).toFixed(decimals);
-  if (!decimalPadding) {
-    decimalNumber = Number.parseFloat(decimalNumber).toFixed(0);
-  }
-  const parts = decimalNumber.split(".");
-
-  const decimalNumber_ = parts[1] ? `.${parts[1]}` : "";
-  let wholeNumber = parts[0];
-  const wholeNumberLength = wholeNumber.length;
-  if (wholeNumberLength > 3) {
-    let crores = "";
-    let toSplit = wholeNumber.slice(0, Math.max(0, wholeNumberLength - 3));
-    if (wholeNumberLength > 7) {
-      crores = `${toSplit.slice(0, Math.max(0, wholeNumberLength - 7))},`;
-      toSplit = toSplit.slice(-4);
-    }
-    toSplit = `${toSplit.replace(/\B(?=(\d{2})+(?!\d))/g, ",")},`;
-    wholeNumber = crores + toSplit + wholeNumber.slice(-3);
-  }
-
-  const returnValue = wholeNumber + decimalNumber_;
-  return prefix + returnValue;
+  const adjustedMinFractionDigits = Math.max(
+    minimumFractionDigits ?? fractionDigits,
+    isString(value) && value.endsWith(".") ? 1 : 0
+  );
+  return number.toLocaleString("en-IN", {
+    maximumFractionDigits: Math.max(
+      maximumFractionDigits ?? fractionDigits,
+      adjustedMinFractionDigits
+    ),
+    minimumFractionDigits: adjustedMinFractionDigits,
+    ...options,
+  });
 }
 
 interface FormatNumberSuffixProps extends FormatNumberProps {
@@ -57,7 +39,7 @@ interface FormatNumberSuffixProps extends FormatNumberProps {
 
 export function formatNumberWithSuffix(
   value,
-  { nullValue = "--", suffix = "", ...rest }: FormatNumberSuffixProps = {}
+  { nullValue = "--", suffix = "", ...options }: FormatNumberSuffixProps = {}
 ) {
   let parsedNumber = Number.parseFloat(value);
   if (Number.isNaN(parsedNumber)) {
@@ -78,15 +60,15 @@ export function formatNumberWithSuffix(
   if (suffixString) {
     suffixString = ` ${suffixString}`;
   }
-  return `${formatNumber(parsedNumber, rest)}${suffixString}`;
+  return `${formatNumber(parsedNumber, options)}${suffixString}`;
 }
 
-export function parseNumber(value) {
-  if (value.includes("--")) {
-    value = value.replaceAll("--", "");
-  }
-  const number = Number.parseFloat(value.split(",").join(""));
-  if (Number.isNaN(number)) return 0;
+export function stringToNumber(value, nanValue?: any) {
+  if (isNumber(value)) return value;
+  const number = Number.parseFloat(
+    isString(value) ? value.replace(/,/g, "") : value
+  );
+  if (Number.isNaN(number)) return nanValue;
   return number;
 }
 

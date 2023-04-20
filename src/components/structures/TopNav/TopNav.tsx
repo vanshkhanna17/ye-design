@@ -1,10 +1,21 @@
+import { IconMenu } from "@tabler/icons-react";
 import { clsx } from "clsx";
-import { ReactNode } from "react";
-import { RiMenu5Fill } from "react-icons/ri/index.js";
-import { useLockBodyScroll, useWindowSize } from "react-use";
+import {
+  CSSProperties,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useToggle, useWindowScroll, useWindowSize } from "react-use";
+import { useScrollDirection } from "wo-library/hooks/index.js";
 import { BREAKPOINTS } from "../../../styles/media.js";
-import { Button, Container, Divider } from "../../atoms/index.js";
+import styleUtils from "../../../styles/utils/flex.module.css";
+import { Button, Container } from "../../atoms/index.js";
 import styles from "./topNav.module.css";
+import TopNavItem from "./TopNavItem.js";
+
 const variantOptions = ["basic", "transparent", "flat", "underlined"] as const;
 
 interface TopNavProps {
@@ -13,21 +24,24 @@ interface TopNavProps {
   contentLeft?: ReactNode;
   contentMenu?: ReactNode;
   contentRight?: ReactNode;
-  drawer: boolean;
-  expandedHeight: number;
-  innerClassNames: {
+  drawer?: boolean;
+  expandedHeight?: number;
+  hideOnScroll?: boolean | "contentLeft";
+  innerClassNames?: {
     isExpanded?: string;
     container?: string;
   };
   isExpanded?: boolean;
   leftNavIcon?: ReactNode;
   logo?: ReactNode;
-  logoVariant: string;
+  logoVariant?: string;
+  multiRow?: boolean;
   rightNavIcon?: ReactNode;
   sideNavToggle?: boolean;
+  style?: CSSProperties;
   toggleSideNav?: Function;
   toggleDrawer?: Function;
-  variant?: typeof variantOptions[number];
+  variant?: (typeof variantOptions)[number];
   withSideNav?: boolean;
 }
 
@@ -39,13 +53,16 @@ export default function TopNav({
   contentRight,
   drawer,
   expandedHeight = 72,
+  hideOnScroll,
   innerClassNames = {},
   isExpanded,
   leftNavIcon,
   logo,
   logoVariant = "basic",
+  multiRow,
   rightNavIcon,
   sideNavToggle,
+  style,
   toggleSideNav,
   toggleDrawer,
   variant,
@@ -53,18 +70,46 @@ export default function TopNav({
   ...props
 }: TopNavProps) {
   const { width } = useWindowSize();
-  const smallerWidth = width < BREAKPOINTS.lg;
-  useLockBodyScroll(!!(smallerWidth && drawer));
+  const [localDrawer, toggleLocalDrawer] = useToggle(false);
+  const scrollDirection = useScrollDirection();
+  const [smallerWidth, setSmallerWidth] = useState<boolean>();
+
+  const ref = useRef<HTMLDivElement>();
+  const contentLeftRef = useRef<HTMLDivElement>();
+  const { y: scrollY } = useWindowScroll();
+
+  const showDrawer = drawer || localDrawer;
+  const rootStyle = useMemo(() => {
+    if (!(hideOnScroll || ref.current)) return {};
+    const isScrollingDown =
+      scrollDirection === "down" && scrollY > ref.current.offsetHeight;
+    if (!isScrollingDown || showDrawer) return {};
+    if (hideOnScroll === "contentLeft" && contentLeftRef.current) {
+      return {
+        transform: `translateY(-${contentLeftRef.current.offsetHeight + 16}px)`,
+      };
+    }
+    return { transform: "translateY(-100%)" };
+  }, [hideOnScroll, scrollDirection, scrollY, showDrawer]);
+
+  useEffect(() => {
+    // NOTE: smallerWidth is undefined server side because width is Infinity
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    setSmallerWidth(width <= BREAKPOINTS.lg);
+  }, [width]);
+
+  const hasContextMenu = contentMenu || contentLeft || contentRight;
 
   return (
     <div
+      ref={ref}
       className={clsx(
         styles.root,
         styles[`is-${variant}`],
         {
-          [styles.isExpanded]: isExpanded,
           [styles.withSideNav]: withSideNav,
           [styles.sideNavToggled]: sideNavToggle,
+          [styles.hasDrawer]: showDrawer,
         },
         className,
         innerClassNames
@@ -73,19 +118,26 @@ export default function TopNav({
             }
           : {}
       )}
+      style={{ ...rootStyle, ...style }}
       {...props}
     >
       {banner && (
         <div className={clsx(styles.container, styles.banner)}>{banner}</div>
       )}
-      <Container className={clsx(styles.container, innerClassNames.container)}>
-        {smallerWidth && (withSideNav || leftNavIcon) && (
+      <Container
+        className={clsx(styles.container, innerClassNames.container, {
+          [styles.hasMultiRow]: multiRow,
+        })}
+      >
+        {/* left nav icon */}
+        {smallerWidth !== false && withSideNav && leftNavIcon !== null && (
           <div className={clsx(styles.contentMenuIcon)}>
             <Button variant="trans" spacing="none" onClick={toggleSideNav}>
-              {leftNavIcon || <RiMenu5Fill />}
+              {leftNavIcon || <IconMenu />}
             </Button>
           </div>
         )}
+        {/* logo */}
         {logo && (
           <div
             className={clsx(
@@ -97,36 +149,79 @@ export default function TopNav({
             <div className={styles.logo}>{logo}</div>
           </div>
         )}
-        {smallerWidth && (
-          <div className={clsx(styles.contentMenuIcon)}>
-            {rightNavIcon ||
-              ((contentLeft || contentRight || contentMenu) && (
-                <Button variant="trans" spacing="none" onClick={toggleDrawer}>
-                  <RiMenu5Fill />
-                </Button>
-              ))}
-          </div>
-        )}
-        {contentLeft && Number.isFinite(width) && !smallerWidth && (
-          <div className={styles.contentLeft}>{contentLeft}</div>
-        )}
-
-        {smallerWidth && (
-          <div
-            className={clsx(styles.contentMenu, {
-              [styles.open]: drawer,
-            })}
-          >
+        {/* left content */}
+        {(smallerWidth === false || multiRow) && contentLeft && (
+          <div ref={contentLeftRef} className={styles.contentLeft}>
             {contentLeft}
-            <Divider />
-            {contentRight}
           </div>
         )}
-
-        {contentRight && Number.isFinite(width) && !smallerWidth && (
-          <div className={styles.contentRight}>{contentRight}</div>
+        {hasContextMenu && (
+          <div
+            className={clsx(
+              styleUtils.flexAlignCenter,
+              styles.contentRightWrapper
+            )}
+          >
+            {/* right content */}
+            {contentRight && (
+              <div
+                className={clsx(
+                  styleUtils.flexAlignCenter,
+                  styles.contentRight
+                )}
+              >
+                {contentRight}
+              </div>
+            )}
+            {/* right nav icon */}
+            {!multiRow &&
+              smallerWidth !== false &&
+              rightNavIcon !== null &&
+              hasContextMenu && (
+                <TopNavItem
+                  className={clsx(
+                    styles.contentMenuIcon,
+                    styles.contentMenuIconRight
+                  )}
+                >
+                  <Button
+                    variant="trans"
+                    spacing="none"
+                    onClick={toggleDrawer || toggleLocalDrawer}
+                  >
+                    {rightNavIcon || <IconMenu />}
+                  </Button>
+                </TopNavItem>
+              )}
+          </div>
         )}
       </Container>
+      {/* right content menu */}
+      {smallerWidth && hasContextMenu && (
+        <div
+          className={clsx(styleUtils.flexColumn, styles.contentMenu, {
+            [styles.open]: showDrawer,
+          })}
+        >
+          {contentMenu || (
+            <>
+              <div
+                className={clsx(styleUtils.flexColumn, styles.contentMenuTop)}
+              >
+                {contentLeft}
+              </div>
+              <div
+                className={clsx(
+                  styleUtils.flexColumn,
+                  styles.contentMenuBottom
+                )}
+              >
+                {contentRight}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

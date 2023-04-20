@@ -1,23 +1,11 @@
 import { useState } from "react";
-import {
-  AiFillLeftCircle,
-  AiFillRightCircle,
-  AiOutlineEye,
-  AiOutlineSearch,
-} from "react-icons/ai";
+import { storyIconMap } from "../../../tools/storybook.js";
 import Button from "../Button/Button.js";
 import NumberInput from "./NumberInput.js";
 
-const iconMap = {
-  AiFillLeftCircle,
-  AiFillRightCircle,
-  AiOutlineEye,
-  AiOutlineSearch,
-};
-
 const metadata = {
   argTypes: {
-    icon: { control: { options: Object.keys(iconMap), type: "select" } },
+    icon: { control: { options: Object.keys(storyIconMap), type: "select" } },
   },
   component: NumberInput,
 };
@@ -25,50 +13,69 @@ const metadata = {
 export default metadata;
 
 const Template = ({ width, iconBefore, iconAfter, ...args }) => {
-  const IconBefore = iconMap[iconBefore];
-  const IconAfter = iconMap[iconAfter];
+  const IconBefore = storyIconMap[iconBefore];
+  const IconAfter = storyIconMap[iconAfter];
+  const [value, setValue] = useState();
   return (
-    <NumberInput
-      iconBefore={IconBefore ? <IconBefore /> : null}
-      iconAfter={IconAfter ? <IconAfter /> : null}
-      style={{ width }}
-      {...args}
-    />
+    <div style={{ width }}>
+      <NumberInput
+        iconBefore={IconBefore ? <IconBefore /> : null}
+        iconAfter={IconAfter ? <IconAfter /> : null}
+        onChange={(event) => {
+          setValue(event.target.value);
+        }}
+        {...args}
+      />
+      {value !== undefined && (
+        <div>
+          Value: {value} ({typeof value})
+        </div>
+      )}
+    </div>
   );
 };
 
-export const Basic = Template.bind({});
-Basic.args = {
-  placeholder: "Enter your text",
-  width: 240,
-};
-Basic.parameters = {
-  jest: ["TextInput.test.js"],
+export const Basic = {
+  args: {
+    placeholder: "Enter your text",
+    width: 240,
+  },
+  parameters: {
+    jest: ["TextInput.test.js"],
+  },
+  render: (args) => <Template {...args} />,
 };
 
-export const Formatted = Template.bind({});
-Formatted.args = {
-  format: true,
-  placeholder: "Enter your text",
-  width: 240,
+export const Formatted = {
+  args: {
+    format: true,
+    parse: true,
+    placeholder: "Enter your text",
+    width: 240,
+  },
+  render: (args) => <Template {...args} />,
 };
-export const PresetValue = ({ width, iconBefore, iconAfter, ...args }) => {
-  const IconBefore = iconMap[iconBefore];
-  const IconAfter = iconMap[iconAfter];
+
+const PresetValueTemplate = ({ width, iconBefore, iconAfter, ...args }) => {
+  const IconBefore = storyIconMap[iconBefore];
+  const IconAfter = storyIconMap[iconAfter];
   const [value, setValue] = useState(0);
   return (
-    <div>
+    <div style={{ width }}>
       <Button onClick={() => setValue(value + 1)}>Update</Button>
       <NumberInput
         iconBefore={IconBefore ? <IconBefore /> : null}
         iconAfter={IconAfter ? <IconAfter /> : null}
-        style={{ width }}
         value={value}
         {...args}
       />
     </div>
   );
 };
-PresetValue.args = {
-  format: true,
+
+export const PresetValue = {
+  args: {
+    format: true,
+  },
+  render: (args) => <PresetValueTemplate {...args} />,
 };
